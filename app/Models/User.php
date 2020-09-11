@@ -10,7 +10,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 class User extends BaseModel implements AuthenticatableContract  /*, AuthorizableContract*/
 {
 
-    use Notifiable, SoftDeletes, Authenticatable ;
+    use  SoftDeletes, Authenticatable ;
 
 
     // Soft delete and user authentication

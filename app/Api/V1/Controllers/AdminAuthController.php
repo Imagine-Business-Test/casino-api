@@ -5,7 +5,7 @@ namespace App\Api\V1\Controllers;
 
 use App\Api\V1\Models\AdminAuth;
 use App\Api\V1\Models\AdminProfile;
-use App\Http\Controllers\Api\V1\BaseController;
+use App\Api\V1\Controllers\BaseController;
 use Carbon\Carbon;
 use Ixudra\Curl\Facades\Curl;
 use App\Api\V1\Models\oAuthClient;

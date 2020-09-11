@@ -6,6 +6,8 @@ use App\User;
 use Dusterio\LumenPassport\LumenPassport;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
+use Dingo\Api\Auth\Provider\Basic;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -17,6 +19,9 @@ class AuthServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        // app('Dingo\Api\Auth\Auth')->extend('basic', function ($app) {
+        //     return new Basic($app['auth'], 'email');
+        // });
     }
 
     /**
@@ -36,8 +41,23 @@ class AuthServiceProvider extends ServiceProvider
         //         return User::where('api_token', $request->input('api_token'))->first();
         //     }
         // });
-        
+
+
+
+        // Passport::personalAccessClientId(env("PASSPORT_PERSONAL_ACCESS_CLIENT_ID", "36"));
+
+        // Passport::personalAccessClientSecret(env("PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET", "uM0zTjimhfYt6fwCfxCGFwgFTTFURwhBNgalOQ5lu"));
+        // // LumenPassport::routes($this->app,['prefix'=>'api']);
+        Passport::tokensCan([
+            'admin' => "The super admin",
+            'cashier' => "Cashier's only  scope",
+            'player' => "player's/Patrons only  scope",
+            'pit_boss' => "",
+            'super_admin' => "",
+            'manager' => "",
+            'operator' => "",
+        ]);
+
         LumenPassport::routes($this->app);
-        // LumenPassport::routes($this->app,['prefix'=>'api']);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 (new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
     dirname(__DIR__)
@@ -65,6 +65,8 @@ $app->singleton(
 
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
+    'scopes' => \Laravel\Passport\Http\Middleware\CheckScopes::class,
+    'scope' => \Laravel\Passport\Http\Middleware\CheckForAnyScope::class,
 ]);
 
 /*
@@ -77,10 +79,15 @@ $app->routeMiddleware([
 | totally optional, so you are not required to uncomment this line.
 |
 */
+
+$app->register(Dingo\Api\Provider\LumenServiceProvider::class);
 $app->register(Laravel\Passport\PassportServiceProvider::class);
 $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
-$app->register(Dingo\Api\Provider\LumenServiceProvider::class);
 $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\RepositoryServiceProvider::class);
+$app->register(Orumad\ConfigCache\ServiceProviders\ConfigCacheServiceProvider::class);
+
+
 $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(Ixudra\Curl\CurlServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
@@ -103,7 +110,7 @@ $app->configure('auth');
 $app->router->group([
     'namespace' => 'App\Api\V1\Controllers',
 ], function ($router) {
-    require __DIR__.'/../routes/api/v1.php';
+    require __DIR__ . '/../routes/api/v1.php';
 });
 
 return $app;

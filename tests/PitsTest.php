@@ -12,15 +12,15 @@ use PHPUnit\Framework\TestCase;
 
 class PitsTest extends TestCase
 {
-    public function testAddPitsDataIsArray()
-    {
-        $mockUserId = Mock::mock("Users");
-        $mockUserId->shouldReceive("getUserById")->andReturn(50);
+    // public function testAddPitsDataIsArray()
+    // {
+    //     $mockUserId = Mock::mock("Users");
+    //     $mockUserId->shouldReceive("getUserById")->andReturn(50);
 
-        $pit = new PitsController($mockUserId);
+    //     $pit = new PitsController($mockUserId);
 
-        $newPitData = ['name' => "Roulete", 'size' => 200, 'float' => "20000"];
-        $this->assertIsArray($newPitData);
-        // $this->assertEquals(50, $this->kolp());
-    }
+    //     $newPitData = ['name' => "Roulete", 'size' => 200, 'float' => "20000"];
+    //     $this->assertIsArray($newPitData);
+    //     // $this->assertEquals(50, $this->kolp());
+    // }
 }

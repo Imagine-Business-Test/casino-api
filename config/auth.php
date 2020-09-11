@@ -4,7 +4,7 @@ return [
     /*
     | Path to user photo uploaded during edit. TODO: find a suitable place for this config parameter 
     */
-    'user_image_upload_path'=>'http://prewin-api/photos/',
+    'user_image_upload_path' => 'http://prewin-api/photos/',
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults
@@ -15,7 +15,7 @@ return [
     | as required, but they're a perfect start for most applications.
     |
     */
-    
+
     'defaults' => [
         'api' => [
             'driver' => 'passport',
@@ -45,6 +45,10 @@ return [
             'driver' => 'passport',
             'provider' => 'users',
         ],
+        'auth' => [
+            'driver' => 'passport',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -67,7 +71,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Api\V1\Models\AdminAuth::class,
+            'model' => App\Api\V1\Models\UserAuth::class,
         ],
     ],
 

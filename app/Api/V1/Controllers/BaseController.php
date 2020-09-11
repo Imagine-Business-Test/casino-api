@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Api\V1\Controllers;
 
 use Dingo\Api\Routing\Helpers;
 use App\Http\Controllers\Controller;
 use Dingo\Api\Exception\ValidationHttpException;
-use App\Api\V1\Controllers\HttpStatusResponse;
+use App\Api\V1\Traits\HttpStatusResponse;
 
 class BaseController extends Controller
 {
