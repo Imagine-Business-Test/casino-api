@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Plugins\PUGXShortId\Factory;
+namespace App\Plugins\PUGXShortId;
 
-use App\Plugins\PUGXShortId\Shortid\Shortid;
+use App\Plugins\PUGXShortId\Shortid;
 use RandomLib\Factory as RandomLibFactory;
 use RandomLib\Generator;
 

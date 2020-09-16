@@ -2,6 +2,7 @@
 
 namespace App\Api\V1\Repositories;
 
+use App\Api\V1\Traits\HttpStatusResponse;
 use App\Contracts\IRepository;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 abstract class EloquentRepository implements IRepository
 {
-    use Helpers;
+    use Helpers, HttpStatusResponse;
     protected $model;
 
     public function __construct()
@@ -33,7 +34,7 @@ abstract class EloquentRepository implements IRepository
     /** {@inheritdoc}*/
     public function find(string $id): Collection
     {
-        return Collection::make();
+        return $this->model->where('id', '=', $id)->get();
     }
 
     /** {@inheritdoc}*/
@@ -57,5 +58,4 @@ abstract class EloquentRepository implements IRepository
     {
         return false;
     }
-
 }

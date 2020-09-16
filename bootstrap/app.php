@@ -110,7 +110,10 @@ $app->configure('auth');
 $app->router->group([
     'namespace' => 'App\Api\V1\Controllers',
 ], function ($router) {
-    require __DIR__ . '/../routes/api/v1.php';
+    require __DIR__ . '/../routes/api/GeneralRoute.php';
+    require __DIR__ . '/../routes/api/AdminRoute.php';
+    require __DIR__ . '/../routes/api/CashierRoute.php';
+    require __DIR__ . '/../routes/api/PlayerRoute.php';
 });
 
 return $app;

@@ -2,41 +2,36 @@
 
 namespace App\Api\V1\Repositories\Eloquent;
 
+use App\Api\V1\Models\Businesses;
 use App\Api\V1\Models\oAuthClient;
 use App\Api\V1\Models\UserAuth;
 use App\Api\V1\Models\UserProfile;
-use App\Contracts\Repository\IUserRepository;
 use App\Api\V1\Repositories\EloquentRepository;
+use App\Contracts\Repository\IBusinessRepository;
 use App\Utils\Mapper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class UserEloquentRepository extends  EloquentRepository implements IUserRepository
+class BusinessEloquentRepository extends  EloquentRepository implements IBusinessRepository
 {
     public $user;
-    public function __construct(UserAuth $user, UserProfile $userProfile)
+    public $userProfile;
+    public $business;
+    public function __construct(Businesses $business, UserAuth $user, UserProfile $userProfile)
     {
         parent::__construct();
+
         $this->user =  $user;
         $this->userProfile =  $userProfile;
+        $this->business =  $business;
     }
 
     public function model()
     {
-        return UserProfile::class;
+        return Businesses::class;
     }
 
-    public function showByUsername(string $username)
-    {
-        $res = $this->user->from('user_auth as a')
-            ->select('a.id', 'a.username', 'a.password', 'b.surname', 'b.firstname', 'b.phone', 'b.email', 'b.avatar', 'c.stub as role')
-            ->leftJoin('user_profile as b', 'a.id', 'b.id')
-            ->leftJoin('user_role as c', 'a.role', 'c.id')
-            ->where("a.username", '=', $username)
-            ->get();
 
-        return $res;
-    }
 
     public function register($details)
     {
@@ -46,11 +41,21 @@ class UserEloquentRepository extends  EloquentRepository implements IUserReposit
             DB::beginTransaction();
             $plainPassword = $details['plain_password'];
 
+            //create business
+            $dbDataBiz = Mapper::toBusinessDB($details);
+            $biz = $this->business->create($dbDataBiz);
+
+            $details['business_id'] = $biz->id;
+
+            Log::info("ka" . json_encode($biz));
+
+            //create user auth
             $dbDataAuth = Mapper::toUserDBAuth($details);
             $auth = $this->user->create($dbDataAuth);
 
             $details['id'] = $auth->id;
 
+            //create user profile
             $dbDataProfile = Mapper::toUserDBProfile($details);
             $auth2 = $this->userProfile->create($dbDataProfile);
 
@@ -86,44 +91,14 @@ class UserEloquentRepository extends  EloquentRepository implements IUserReposit
     }
 
 
-    public function nameByEmailExist($details)
-    {
 
-        $firstname = $details['firstname'];
-        $lastname = $details['surname'];
-        $email = $details['email'];
+    public function slugExist($details)
+    {
+        $slug = $details['business_slug'];
 
         $res =  DB::select(DB::raw(
-            "SELECT a.* FROM user_profile a
-            WHERE (a.firstname = '{$firstname}' and a.surname = '{$lastname}' OR
-                  a.firstname ='{$lastname}' and a.surname = '{$firstname}') AND
-                  a.email = '{$email}'   
-         "
-        ));
-
-        return is_null($res) || empty($res) ? $res : $res[0];
-    }
-
-    public function nameByUsernameExist($details)
-    {
-        $username = $details['username'];
-
-        $res =  DB::select(DB::raw(
-            "SELECT a.* FROM user_auth a
-            WHERE a.username = '{$username}'   
-         "
-        ));
-
-        return is_null($res) || empty($res) ? $res : $res[0];
-    }
-
-    public function emailExist($details)
-    {
-        $email = $details['email'];
-
-        $res =  DB::select(DB::raw(
-            "SELECT a.* FROM user_profile a
-            WHERE a.email = '{$email}'   
+            "SELECT a.* FROM businesses a
+            WHERE a.slug = '{$slug}'   
          "
         ));
 

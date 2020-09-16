@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Plugins\PUGXShortId\Shortid;
+namespace App\Plugins\PUGXShortId;
 
-use App\Plugins\PUGXShortId\Factory\Factory;
+use App\Plugins\PUGXShortId\Factory;
 
 final class Shortid implements \JsonSerializable, \Serializable
 {

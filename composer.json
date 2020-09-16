@@ -13,6 +13,7 @@
         "dingo/api": "^2.4",
         "dusterio/lumen-passport": "^0.2.15",
         "guzzlehttp/guzzle": "^6.5",
+        "ircmaxell/random-lib": "^1.2",
         "ixudra/curl": "^6.18",
         "laravel/lumen-framework": "^6.0",
         "lukasoppermann/http-status": "^2.0",
