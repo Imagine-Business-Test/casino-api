@@ -86,5 +86,22 @@ $api->version(
             'as' => 'authorization.login',
             'uses' => 'UserController@login',
         ]);
+
+
+         /**
+         * Vault Routes
+         */
+
+        $api->post('vault/receive', [
+            'as' => 'vault.receive',
+            'uses' => 'VaultController@receive',
+        ]);
+
+        $api->post('vault/dispatch', [
+            'as' => 'vault.dispatch',
+            'uses' => 'VaultController@dispatch',
+        ]);
+
+    
     }
 );

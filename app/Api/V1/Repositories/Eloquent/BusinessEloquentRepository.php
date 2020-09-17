@@ -3,6 +3,8 @@
 namespace App\Api\V1\Repositories\Eloquent;
 
 use App\Api\V1\Models\Businesses;
+use App\Api\V1\Models\ChipVault;
+use App\Api\V1\Models\ExchangeStore;
 use App\Api\V1\Models\oAuthClient;
 use App\Api\V1\Models\UserAuth;
 use App\Api\V1\Models\UserProfile;
@@ -17,13 +19,22 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
     public $user;
     public $userProfile;
     public $business;
-    public function __construct(Businesses $business, UserAuth $user, UserProfile $userProfile)
-    {
+    public $chipVault;
+    public $exchangeStore;
+    public function __construct(
+        Businesses $business,
+        UserAuth $user,
+        UserProfile $userProfile,
+        ChipVault $chipVault,
+        ExchangeStore $exchangeStore
+    ) {
         parent::__construct();
 
         $this->user =  $user;
         $this->userProfile =  $userProfile;
         $this->business =  $business;
+        $this->chipVault =  $chipVault;
+        $this->exchangeStore =  $exchangeStore;
     }
 
     public function model()
@@ -47,8 +58,6 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
 
             $details['business_id'] = $biz->id;
 
-            Log::info("ka" . json_encode($biz));
-
             //create user auth
             $dbDataAuth = Mapper::toUserDBAuth($details);
             $auth = $this->user->create($dbDataAuth);
@@ -59,6 +68,13 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
             $dbDataProfile = Mapper::toUserDBProfile($details);
             $auth2 = $this->userProfile->create($dbDataProfile);
 
+            //create chip vault
+            $dbDataV = Mapper::toChipVault($details);
+            $biz = $this->chipVault->create($dbDataV);
+
+            //create exchange store(vault)
+            $dbDataX = Mapper::toExchangeStore($details);
+            $biz = $this->exchangeStore->create($dbDataX);
 
             $oauth_client = new oAuthClient();
             $oauth_client->user_id = $auth->id;

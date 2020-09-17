@@ -19,6 +19,11 @@ abstract class EloquentRepository implements IRepository
         $this->setModel();
     }
 
+    public function getUser()
+    {
+        return $this->user();
+    }
+
     /**
      * A method that any class(repository) that extends this class MUST have.
      * @return string The namespace of the Model which would be resolve later.

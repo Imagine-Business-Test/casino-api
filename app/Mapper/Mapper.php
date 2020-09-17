@@ -64,4 +64,66 @@ class Mapper
             'avatar' => SELF::propExist($data, 'photo'),
         ];
     }
+
+    public static function toChipVault($data)
+    {
+        $data = (object) $data;
+        return [
+            'business_id' => SELF::propExist($data, 'business_id')
+        ];
+    }
+
+    public static function toChipVaultIncoming($data)
+    {
+        $data = (object) $data;
+        return [
+            'business_id' => SELF::propExist($data, 'business_id'),
+            'chip_vault_id' => SELF::propExist($data, 'vault_id'),
+            'qty' => SELF::propExist($data, 'total_qty'),
+            'amount' => SELF::propExist($data, 'total_value'),
+            'descr' => SELF::propExist($data, 'descr'),
+            'created_by' => SELF::propExist($data, 'user_id'),
+        ];
+    }
+
+    public static function toChipVaultIncomingLog($data)
+    {
+        $data = (object) $data;
+        $res = [];
+        $businessID = SELF::propExist($data, 'business_id');
+        $userID = SELF::propExist($data, 'user_id');
+        $transID = SELF::propExist($data, 'trans_id');
+
+        foreach ($data->detail as $chip) {
+            $chip = (object) $chip;
+            $res[] = [
+                'business_id' => $businessID,
+                'trans_id' => $transID,
+                'chip_id' => SELF::propExist($chip, 'id'),
+                'qty' => SELF::propExist($chip, 'qty'),
+                'chip_value' => SELF::propExist($chip, 'value'),
+                'total_chip_value' => SELF::propExist($chip, 'total_value'),
+                'created_by' => $userID,
+            ];
+        }
+
+
+        return $res;
+    }
+
+    public static function updateChipVault($data)
+    {
+        $data = (object) $data;
+        return [
+            'total_amount' => DB::raw("total_amount + {$data->total_value}"),
+        ];
+    }
+
+    public static function toExchangeStore($data)
+    {
+        $data = (object) $data;
+        return [
+            'business_id' => SELF::propExist($data, 'business_id')
+        ];
+    }
 }
