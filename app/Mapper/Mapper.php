@@ -47,7 +47,8 @@ class Mapper
 
         return [
             'name' => SELF::propExist($data, 'name'),
-            'slug' => SELF::propExist($data, 'business_slug')
+            'slug' => SELF::propExist($data, 'business_slug'),
+            'licence_key' => SELF::propExist($data, 'licence_key')
         ];
     }
 
