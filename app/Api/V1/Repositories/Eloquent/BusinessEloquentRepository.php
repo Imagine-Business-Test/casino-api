@@ -3,6 +3,7 @@
 namespace App\Api\V1\Repositories\Eloquent;
 
 use App\Api\V1\Models\Businesses;
+use App\Api\V1\Models\Chips;
 use App\Api\V1\Models\ChipVault;
 use App\Api\V1\Models\ExchangeStore;
 use App\Api\V1\Models\oAuthClient;
@@ -20,13 +21,15 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
     public $userProfile;
     public $business;
     public $chipVault;
+    public $chips;
     public $exchangeStore;
     public function __construct(
         Businesses $business,
         UserAuth $user,
         UserProfile $userProfile,
         ChipVault $chipVault,
-        ExchangeStore $exchangeStore
+        ExchangeStore $exchangeStore,
+        Chips $chips
     ) {
         parent::__construct();
 
@@ -34,6 +37,7 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
         $this->userProfile =  $userProfile;
         $this->business =  $business;
         $this->chipVault =  $chipVault;
+        $this->chips =  $chips;
         $this->exchangeStore =  $exchangeStore;
     }
 
@@ -68,9 +72,16 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
             $dbDataProfile = Mapper::toUserDBProfile($details);
             $auth2 = $this->userProfile->create($dbDataProfile);
 
-            //create chip vault
-            $dbDataV = Mapper::toChipVault($details);
-            $biz = $this->chipVault->create($dbDataV);
+            /**
+             * Get all the default chips in the system and use it to create
+             * individual chip wallet/vault for this business
+             */
+            $allDefaultChips = $this->chips->select()->where('is_default','=','1')->get();
+            $defaultDetail = ['details'=>$allDefaultChips,'business_id'=>$biz->id];
+
+            //create all default chip vault for this business
+            $dbDataV = Mapper::toChipVault($defaultDetail);
+            $biz = $this->chipVault->insert($dbDataV);
 
             //create exchange store(vault)
             $dbDataX = Mapper::toExchangeStore($details);

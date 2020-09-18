@@ -68,9 +68,20 @@ class Mapper
     public static function toChipVault($data)
     {
         $data = (object) $data;
-        return [
-            'business_id' => SELF::propExist($data, 'business_id')
-        ];
+        $res = [];
+        $businessID = SELF::propExist($data, 'business_id');
+
+        foreach ($data->details as $chip) {
+
+            $chip = (object) $chip;
+            $res[] = [
+                'business_id' => $businessID,
+                'chip_id' => $chip->id,
+            ];
+        }
+
+
+        return $res;
     }
 
     public static function toChipVaultIncoming($data)
