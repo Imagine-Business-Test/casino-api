@@ -7,7 +7,8 @@ interface IChipVaultRepository
 {
     public function receive(array $details);
 
-    public function dispatch(array $details);
+    public function dispatchControlled(array $details);
+
+    public function dispatchAuto(array $details);
     
-    public function setActiveVault();
 }

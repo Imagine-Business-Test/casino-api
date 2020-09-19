@@ -99,7 +99,7 @@ $api->version(
 
         $api->post('vault/dispatch', [
             'as' => 'vault.dispatch',
-            'uses' => 'VaultController@dispatch',
+            'uses' => 'VaultController@disburse',
         ]);
 
     

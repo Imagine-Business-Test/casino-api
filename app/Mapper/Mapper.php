@@ -2,6 +2,7 @@
 
 namespace  App\Utils;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -104,14 +105,12 @@ class Mapper
         $res = [];
         $businessID = SELF::propExist($data, 'business_id');
         $userID = SELF::propExist($data, 'user_id');
-        $transID = SELF::propExist($data, 'trans_id');
 
         foreach ($data->detail as $chip) {
             $chip = (object) $chip;
             $res[] = [
                 'business_id' => $businessID,
-                'trans_id' => $transID,
-                'chip_id' => SELF::propExist($chip, 'id'),
+                'chip_vault_id' => SELF::propExist($chip, 'vault_id'),
                 'qty' => SELF::propExist($chip, 'qty'),
                 'chip_value' => SELF::propExist($chip, 'value'),
                 'total_chip_value' => SELF::propExist($chip, 'total_value'),
@@ -123,13 +122,35 @@ class Mapper
         return $res;
     }
 
-    public static function updateChipVault($data)
+    public static function toChipVaultOutgoingLog($data)
     {
         $data = (object) $data;
-        return [
-            'total_amount' => DB::raw("total_amount + {$data->total_value}"),
-        ];
+        $res = [];
+        $businessID = SELF::propExist($data, 'business_id');
+        $userID = SELF::propExist($data, 'user_id');
+
+        foreach ($data->vaults as $vault) {
+            $vault = (object) $vault;
+            $res[] = [
+                'business_id' => $businessID,
+                'chip_vault_id' => SELF::propExist($vault, 'vault_id'),
+                'qty' => SELF::propExist($vault, 'qty'),
+                'amount' => SELF::propExist($vault, 'amount'),
+                'created_by' => $userID,
+            ];
+        }
+
+
+        return $res;
     }
+
+    // public static function updateChipVault($data)
+    // {
+    //     $data = (object) $data;
+    //     return [
+    //         'total_amount' => DB::raw("total_amount + {$data->total_value}"),
+    //     ];
+    // }
 
     public static function toExchangeStore($data)
     {
@@ -137,5 +158,86 @@ class Mapper
         return [
             'business_id' => SELF::propExist($data, 'business_id')
         ];
+    }
+
+    public static function debitChipVault($details)
+    {
+        $details = (object) $details;
+
+        $businessID = $details->business_id;
+
+        $cases1 = ["qty=CASE"];
+        $cases3 = ["total_amount=CASE"];
+        $ids = [];
+
+        foreach ($details->vaults as $vault) {
+            $vault = (object) $vault;
+            $vaultID = $vault->vault_id;
+            $qty = $vault->qty;
+            $amount = $vault->amount;
+
+
+            $cases1[] = "WHEN id = {$vaultID} and business_id = {$businessID} THEN qty - {$qty}";
+            $cases3[] = "WHEN id = {$vaultID} and business_id = {$businessID} THEN total_amount - {$amount}";
+
+            $ids[] = $vaultID;
+        }
+        $cases1[] = "ELSE qty END";
+        $cases3[] = "ELSE total_amount END";
+
+        $ids = implode(',', $ids);
+
+        $finalCases = [];
+
+        $finalCases[] = implode(' ', $cases1);
+        $finalCases[] = implode(' ', $cases3);
+
+        $finalCases = implode(',', $finalCases);
+        $currentTime = Carbon::now();
+
+        return "UPDATE chip_vault SET {$finalCases}, `updated_at` = '{$currentTime}' WHERE `id` in ({$ids})";
+    }
+
+    public static function updateChipVault($details)
+    {
+        $details = (object) $details;
+
+        $businessID = $details->business_id;
+
+        $cases1 = ["qty=CASE"];
+        $cases2 = ["chip_value=CASE"];
+        $cases3 = ["total_amount=CASE"];
+        $ids = [];
+
+        foreach ($details->detail as $vault) {
+            $vault = (object) $vault;
+            $vaultID = $vault->vault_id;
+            $qty = $vault->qty;
+            $value = $vault->value;
+            $totalAmount = $value * $qty;
+
+
+            $cases1[] = "WHEN id = {$vaultID} and business_id = {$businessID} THEN qty + {$qty}";
+            $cases2[] = "WHEN id = {$vaultID} and business_id = {$businessID} THEN {$value}";
+            $cases3[] = "WHEN id = {$vaultID} and business_id = {$businessID} THEN total_amount + {$totalAmount}";
+
+            $ids[] = $vaultID;
+        }
+        $cases1[] = "ELSE qty END";
+        $cases2[] = "ELSE chip_value END";
+        $cases3[] = "ELSE total_amount END";
+
+        $ids = implode(',', $ids);
+
+        $finalCases = [];
+
+        $finalCases[] = implode(' ', $cases1);
+        $finalCases[] = implode(' ', $cases2);
+        $finalCases[] = implode(' ', $cases3);
+
+        $finalCases = implode(',', $finalCases);
+        $currentTime = Carbon::now();
+
+        return "UPDATE chip_vault SET {$finalCases}, `updated_at` = '{$currentTime}' WHERE `id` in ({$ids})";
     }
 }

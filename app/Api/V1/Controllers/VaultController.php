@@ -30,19 +30,69 @@ class VaultController extends BaseController
     }
 
 
-    public function receive(Request $request)
+    public function disburse(Request $request)
     {
-
-        $detailz = $request->input();
-
-        // Log::info("logging raw");
-        // Log::info(json_encode($detailz));
-
 
         $validator = Validator::make(
             $request->input(),
             [
-                'chips' => 'required',
+                'total_amount' => 'required',
+            ]
+        );
+
+        $user = $request->user('api');
+
+        if ($validator->fails()) {
+
+            //send nicer error to the user
+            $response_message = $this->customHttpResponse(401, 'Incorrect Details. All fields are required.');
+            return response()->json($response_message);
+        }
+
+
+
+       
+        try {
+
+           
+            $detail = $request->input();
+
+            if ($request->has('vaults') && count($request->input('vaults')) > 0) {
+
+                //use the vaults details
+                $q1 = $this->chipVaultRepo->dispatchControlled( $detail );
+            }else{
+                //use just the Total_amount and auto select from any random the equivalent of total_amount
+                $q1 = $this->chipVaultRepo->dispatchAuto( $detail );
+            }
+
+            $response = json_decode($q1->getContent());
+
+            if ($response->status_code === 200) {
+
+                $response_message = $this->customHttpResponse(200, "Entity added successfully Although email was sent as it's disabled.");
+                return response()->json($response_message);
+            } else {
+
+                //send nicer data to the user
+                return response()->json($response);
+            }
+        } catch (\Throwable $th) {
+
+            //send nicer data to the user
+            $response_message = $this->customHttpResponse(500, 'Transaction Error.');
+            return response()->json($response_message);
+        }
+    }
+
+
+    public function receive(Request $request)
+    {
+
+        $validator = Validator::make(
+            $request->input(),
+            [
+                'vaults' => 'required',
             ]
         );
 
@@ -59,21 +109,21 @@ class VaultController extends BaseController
         try {
 
 
-            $detail = $request->input('chips');
+            $detail = $request->input('vaults');
             $descr = $request->input('descr');
             $totalQty = 0;
             $totalValue = 0;
             $detailed = [];
 
-            foreach ((array) $detail as $chip) {
-                $chip = (object) $chip;
+            foreach ((array) $detail as $vault) {
+                $vault = (object) $vault;
 
-                $totalQty += $chip->qty;
-                $amount = $chip->qty * $chip->value;
+                $totalQty += $vault->qty;
+                $amount = $vault->qty * $vault->value;
                 $totalValue += $amount;
 
-                $chip->total_value = $amount;
-                $detailed[] = $chip;
+                $vault->total_value = $amount;
+                $detailed[] = $vault;
             }
 
             $vaultInfo = [
