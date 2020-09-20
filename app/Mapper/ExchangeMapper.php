@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class Mapper
+class ExchangeMapper
 {
 
     public static function propExist($object, $prop)
@@ -14,58 +14,6 @@ class Mapper
         return property_exists($object, $prop) ? $object->{$prop} : null;
     }
 
-
-
-    public static function toUserDBAuth($data)
-    {
-        $data = (object) $data;
-
-        return [
-            'username' => $data->username,
-            'password' => $data->password,
-            'role' => (int) $data->role,
-            'business_id' => SELF::propExist($data, 'business_id'),
-        ];
-    }
-
-    public static function toUserDBProfile($data)
-    {
-        $data = (object) $data;
-
-        return [
-            'id' => SELF::propExist($data, 'id'),
-            'firstname' => SELF::propExist($data, 'firstname'),
-            'surname' => SELF::propExist($data, 'surname'),
-            'email' => SELF::propExist($data, 'email'),
-            'phone' => SELF::propExist($data, 'phone'),
-            'business_id' => SELF::propExist($data, 'business_id'),
-        ];
-    }
-
-    public static function toBusinessDB($data)
-    {
-        $data = (object) $data;
-
-        return [
-            'name' => SELF::propExist($data, 'name'),
-            'slug' => SELF::propExist($data, 'business_slug'),
-            'licence_key' => SELF::propExist($data, 'licence_key')
-        ];
-    }
-
-
-    public static function updateUser($data)
-    {
-        $data = (object) $data;
-
-        return [
-            'surname' => SELF::propExist($data, 'surname'),
-            'firstname' => SELF::propExist($data, 'firstname'),
-            'phone' => SELF::propExist($data, 'phone'),
-            'username' => SELF::propExist($data, 'username'),
-            'avatar' => SELF::propExist($data, 'photo'),
-        ];
-    }
 
     public static function toChipVault($data)
     {
@@ -87,18 +35,6 @@ class Mapper
         return $res;
     }
 
-    public static function toChipVaultIncoming($data)
-    {
-        $data = (object) $data;
-        return [
-            'business_id' => SELF::propExist($data, 'business_id'),
-            'chip_vault_id' => SELF::propExist($data, 'vault_id'),
-            'qty' => SELF::propExist($data, 'total_qty'),
-            'amount' => SELF::propExist($data, 'total_value'),
-            'descr' => SELF::propExist($data, 'descr'),
-            'created_by' => SELF::propExist($data, 'user_id'),
-        ];
-    }
 
     public static function toChipVaultIncomingLog($data)
     {
@@ -123,45 +59,6 @@ class Mapper
         return $res;
     }
 
-    public static function toChipVaultOutgoingLog($data)
-    {
-        $data = (object) $data;
-        $res = [];
-        $businessID = SELF::propExist($data, 'business_id');
-        $userID = SELF::propExist($data, 'user_id');
-
-        foreach ($data->vaults as $vault) {
-            $vault = (object) $vault;
-            $res[] = [
-                'business_id' => $businessID,
-                'chip_vault_id' => SELF::propExist($vault, 'vault_id'),
-                'qty' => SELF::propExist($vault, 'qty'),
-                'amount' => SELF::propExist($vault, 'amount'),
-                'holder_type' => $data->holder_type,
-                'holder_id' => SELF::propExist($vault, 'vault_id'),
-                'created_by' => $userID,
-            ];
-        }
-
-
-        return $res;
-    }
-
-    // public static function updateChipVault($data)
-    // {
-    //     $data = (object) $data;
-    //     return [
-    //         'total_amount' => DB::raw("total_amount + {$data->total_value}"),
-    //     ];
-    // }
-
-    public static function toExchangeStore($data)
-    {
-        $data = (object) $data;
-        return [
-            'business_id' => SELF::propExist($data, 'business_id')
-        ];
-    }
 
     public static function debitChipVault($details)
     {
@@ -254,7 +151,7 @@ class Mapper
             $vault = (object) $vault;
             $vaultID = $vault->vault_id;
             $qty = $vault->qty;
-            $value = $vault->vault_value;
+            $value = $vault->value;
             $totalAmount = $value * $qty;
 
 
@@ -290,7 +187,7 @@ class Mapper
         foreach ($data->vaults as $chip) {
             $chip = (object) $chip;
             $qty = SELF::propExist($chip, 'qty');
-            $value = SELF::propExist($chip, 'vault_value');
+            $value = SELF::propExist($chip, 'value');
             $totalValue = $qty * $value;
 
             $res[] = [
@@ -299,7 +196,7 @@ class Mapper
                 'qty' => $qty,
                 'chip_value' => $value,
                 'holder_type' => $data->holder_type,
-                'holder_id' => SELF::propExist($chip, 'vault_id'),
+                'holder_id' => $data->holder_id,
                 'total_chip_value' => $totalValue,
                 'created_by' => $userID,
             ];

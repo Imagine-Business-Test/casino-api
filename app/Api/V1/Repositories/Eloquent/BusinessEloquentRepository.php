@@ -6,6 +6,7 @@ use App\Api\V1\Models\Businesses;
 use App\Api\V1\Models\Chips;
 use App\Api\V1\Models\ChipVault;
 use App\Api\V1\Models\ExchangeStore;
+use App\Api\V1\Models\ExchangeVault;
 use App\Api\V1\Models\oAuthClient;
 use App\Api\V1\Models\UserAuth;
 use App\Api\V1\Models\UserProfile;
@@ -22,13 +23,13 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
     public $business;
     public $chipVault;
     public $chips;
-    public $exchangeStore;
+    public $exchangeVault;
     public function __construct(
         Businesses $business,
         UserAuth $user,
         UserProfile $userProfile,
         ChipVault $chipVault,
-        ExchangeStore $exchangeStore,
+        ExchangeVault $exchangeVault,
         Chips $chips
     ) {
         parent::__construct();
@@ -38,7 +39,7 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
         $this->business =  $business;
         $this->chipVault =  $chipVault;
         $this->chips =  $chips;
-        $this->exchangeStore =  $exchangeStore;
+        $this->exchangeVault =  $exchangeVault;
     }
 
     public function model()
@@ -76,16 +77,33 @@ class BusinessEloquentRepository extends  EloquentRepository implements IBusines
              * Get all the default chips in the system and use it to create
              * individual chip wallet/vault for this business
              */
-            $allDefaultChips = $this->chips->select()->where('is_default','=','1')->get();
-            $defaultDetail = ['details'=>$allDefaultChips,'business_id'=>$biz->id];
+            $allDefaultChips = $this->chips->select()->where('is_default', '=', '1')->get();
+            $defaultDetail = ['details' => $allDefaultChips, 'business_id' => $biz->id];
 
-            //create all default chip vault for this business
-            $dbDataV = Mapper::toChipVault($defaultDetail);
-            $biz = $this->chipVault->insert($dbDataV);
 
-            //create exchange store(vault)
-            $dbDataX = Mapper::toExchangeStore($details);
-            $biz = $this->exchangeStore->create($dbDataX);
+            foreach ($allDefaultChips as $chip) {
+
+                $chip = (object) $chip;
+                /**
+                 * Create all default chip vault for this business
+                 * Note: Used this method of simultenous insertion ( save() ) to avoid foreign key constraints 
+                 * as the next model/table (ExchangeVault) depends on this table's data
+                 */
+                $chipVault = new ChipVault();
+                $chipVault->business_id = $biz->id;
+                $chipVault->chip_id = $chip->id;
+                $chipVault->chip_slug = $chip->slug;
+                $chipVault->chip_value = $chip->value;
+                $chipVault->save();
+
+                //create all exchange vault for this business.
+                $exchangeVault = new ExchangeVault();
+                $exchangeVault->business_id = $biz->id;
+                $exchangeVault->chip_id = $chip->id;
+                $exchangeVault->chip_value = $chip->value;
+                $exchangeVault->save();
+            }
+
 
             $oauth_client = new oAuthClient();
             $oauth_client->user_id = $auth->id;

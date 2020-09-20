@@ -102,6 +102,20 @@ $api->version(
             'uses' => 'VaultController@disburse',
         ]);
 
+         /**
+         * Exchange Routes
+         */
+
+        $api->post('exchange/receive', [
+            'as' => 'exchange.receive',
+            'uses' => 'ExchangeController@receive',
+        ]);
+
+        $api->post('exchange/dispatch', [
+            'as' => 'exchange.dispatch',
+            'uses' => 'ExchangeController@disburse',
+        ]);
+
     
     }
 );

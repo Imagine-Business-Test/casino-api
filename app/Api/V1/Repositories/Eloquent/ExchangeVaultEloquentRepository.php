@@ -3,20 +3,20 @@
 namespace App\Api\V1\Repositories\Eloquent;
 
 use App\Api\V1\Models\ChipVault;
-use App\Api\V1\Models\ChipVaultIncoming;
 use App\Api\V1\Models\ChipVaultIncomingLog;
 use App\Api\V1\Models\ChipVaultOutgoingLog;
 use App\Api\V1\Models\ExchangeVault;
 use App\Api\V1\Models\ExchangeVaultIncomingLog;
 use App\Api\V1\Models\ExchangeVaultOutgoingLog;
 use App\Api\V1\Repositories\EloquentRepository;
-use App\Contracts\Repository\IChipVaultRepository;
+use App\Contracts\Repository\IExchangeVaultRepository;
+use App\Utils\ExchangeMapper;
 use App\Utils\Mapper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVaultRepository
+class ExchangeVaultEloquentRepository extends  EloquentRepository implements IExchangeVaultRepository
 {
 
     private $chipVault;
@@ -205,9 +205,6 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
 
 
             //create VOL
-            $holderType = 2; //where , 2 = exchange vault
-            $details['holder_type'] = $holderType;
-
             $dbDataVOL = Mapper::toChipVaultOutgoingLog($details);
             $biz = $this->chipVOL->insert($dbDataVOL);
 
@@ -221,9 +218,8 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
             DB::statement($dbDataCV);
 
             //create exhange EIL
-            $holderType = 1; //where , 1 = main vault
-            $details['holder_type'] = $holderType;
-            $dbDataEIL = Mapper::toExchangeVaultIncomingLog($details);
+            $holderType = 1; //1 = vault
+            $dbDataEIL = Mapper::toExchangeVaultIncomingLog($details, $holderType);
             $biz = $this->exchVIL->insert($dbDataEIL);
 
             // Log::info("info");
@@ -261,16 +257,17 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
 
 
             //update vault
-            $dbDataCV = Mapper::updateChipVault($details);
-            // Log::info("vault multi = ");
-            // Log::info(json_encode($dbDataCV));
+            $dbDataCV = ExchangeMapper::creditExchangeVault($details);
+
 
             $auth2 = DB::statement($dbDataCV);
 
 
             //create VIL
-            $dbDataVIL = Mapper::toChipVaultIncomingLog($details);
-            $biz = $this->chipVIL->insert($dbDataVIL);
+            $dbDataVIL = ExchangeMapper::toExchangeVaultIncomingLog($details);
+            Log::info("vault multi = ");
+            Log::info(json_encode($dbDataVIL));
+            $biz = $this->exchVIL->insert($dbDataVIL);
 
             DB::commit();
             //send nicer data to the user
