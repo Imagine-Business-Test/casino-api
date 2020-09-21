@@ -89,8 +89,23 @@ $api->version(
 
 
          /**
+         * Chip Holder Routes
+         */
+
+        $api->get('chip_holder', [
+            'as' => 'vault.chip_holder',
+            'uses' => 'ChipHolderController@findAll',
+        ]);
+
+
+         /**
          * Vault Routes
          */
+
+        $api->get('vault/all_by_business', [
+            'as' => 'vault.all_by_business',
+            'uses' => 'VaultController@findAllByBusiness',
+        ]);
 
         $api->post('vault/receive', [
             'as' => 'vault.receive',

@@ -29,6 +29,12 @@ class VaultController extends BaseController
         $this->chipVaultRepo = $chipVaultRepo;
     }
 
+    public function findAllByBusiness()
+    {
+        $result = $this->chipVaultRepo->getAllByBusiness();
+        $response_message = $this->customHttpResponse(200, 'Success.', $result);
+        return response()->json($response_message);
+    }
 
     public function disburse(Request $request)
     {
@@ -51,19 +57,19 @@ class VaultController extends BaseController
 
 
 
-       
+
         try {
 
-           
+
             $detail = $request->input();
 
             if ($request->has('vaults') && count($request->input('vaults')) > 0) {
 
                 //use the vaults details
-                $q1 = $this->chipVaultRepo->dispatchControlled( $detail );
-            }else{
+                $q1 = $this->chipVaultRepo->dispatchControlled($detail);
+            } else {
                 //use just the Total_amount and auto select from any random the equivalent of total_amount
-                $q1 = $this->chipVaultRepo->dispatchAuto( $detail );
+                $q1 = $this->chipVaultRepo->dispatchAuto($detail);
             }
 
             $response = json_decode($q1->getContent());

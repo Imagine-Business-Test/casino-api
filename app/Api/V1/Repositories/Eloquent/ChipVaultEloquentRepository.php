@@ -53,7 +53,15 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
     {
         return ChipVault::class;
     }
-
+    public function getAllByBusiness()
+    {
+        return $this->chipVault
+            ->select('id', 'chip_value')
+            ->where('business_id', '=', $this->userInfo->business_id)
+            ->where('locked', '=', '0')
+            ->orWhereNull('locked')
+            ->get();
+    }
     public function getVaultChipDispensable($vaultDenomination, $incomingAmount)
     {
 
