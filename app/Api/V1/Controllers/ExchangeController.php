@@ -38,6 +38,8 @@ class ExchangeController extends BaseController
             $request->input(),
             [
                 'total_amount' => 'required',
+                'holder_type' => 'required',
+                'holder_id' => 'required',
             ]
         );
 

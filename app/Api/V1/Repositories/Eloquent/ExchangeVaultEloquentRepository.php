@@ -84,7 +84,7 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
             DB::beginTransaction();
 
             //get all the accessible vaults
-            $vaults = $this->chipVault
+            $vaults = $this->exchVault
                 ->where('business_id', '=',  $businessID)
                 ->where('locked', '=', '0')
                 ->orWhereNull('locked')
@@ -122,10 +122,6 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
             }
 
             DB::commit(); //release lockForUpdate
-
-            // Log::info("operated vault");
-            // Log::info(json_encode($operatedVaults));
-            // Log::info(json_encode($remaining));
 
             if ($remaining > 0) {
                 $response_message = $this->customHttpResponse(
@@ -165,7 +161,7 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
             foreach ($details['vaults'] as $vault) {
                 $vault = (object) $vault;
 
-                $result = $this->chipVault
+                $result = $this->exchVault
                     ->where('id', '=', $vault->vault_id)
                     ->where('qty', '>=', $vault->qty)
                     ->where('total_amount', '>=', $vault->amount)
@@ -175,7 +171,7 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
                     })
                     ->lockForUpdate()
                     ->first();
-
+                
 
                 if (is_null($result)) {
 
@@ -200,31 +196,14 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
 
 
             //update vault
-            $dbDataCV = Mapper::debitChipVault($details);
+            $dbDataCV = ExchangeMapper::debitExchangeVault($details);
             DB::statement($dbDataCV);
 
 
             //create VOL
-            $dbDataVOL = Mapper::toChipVaultOutgoingLog($details);
-            $biz = $this->chipVOL->insert($dbDataVOL);
+            $dbDataVOL = ExchangeMapper::toExchangeVaultOutgoingLog($details);
+            $biz = $this->exchVOL->insert($dbDataVOL);
 
-            //////////////////////
-            /////   Exchange
-            //////////////////////
-            //todo: get vault value since thats what links different vaults together
-            //update exchange
-
-            $dbDataCV = Mapper::creditExchangeVault($details);
-            DB::statement($dbDataCV);
-
-            //create exhange EIL
-            $holderType = 1; //1 = vault
-            $dbDataEIL = Mapper::toExchangeVaultIncomingLog($details, $holderType);
-            $biz = $this->exchVIL->insert($dbDataEIL);
-
-            // Log::info("info");
-            // Log::info($dbDataCV);
-            // Log::info($dbDataEIL);
 
             DB::commit();
             //send nicer data to the user
@@ -265,8 +244,6 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
 
             //create VIL
             $dbDataVIL = ExchangeMapper::toExchangeVaultIncomingLog($details);
-            Log::info("vault multi = ");
-            Log::info(json_encode($dbDataVIL));
             $biz = $this->exchVIL->insert($dbDataVIL);
 
             DB::commit();
