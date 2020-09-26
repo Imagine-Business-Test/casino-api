@@ -101,6 +101,15 @@ $api->version(
          /**
          * Vault Routes
          */
+        $api->get('vault/incoming', [
+            'as' => 'vault.find_all_incoming',
+            'uses' => 'VaultController@findAllIncoming',
+        ]);
+
+        $api->get('vault/outgoing', [
+            'as' => 'vault.find_all_outgoing',
+            'uses' => 'VaultController@findAllOutgoing',
+        ]);
 
         $api->get('vault/all_by_business', [
             'as' => 'vault.all_by_business',

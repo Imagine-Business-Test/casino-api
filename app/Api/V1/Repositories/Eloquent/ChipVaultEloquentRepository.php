@@ -53,6 +53,31 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
     {
         return ChipVault::class;
     }
+
+    public function getAllIncoming()
+    {
+        return $this->chipVIL
+            ->from('chip_vault_incoming_log as a')
+            ->select('a.id', DB::raw('SUM(a.total_chip_value) as total_amount'), DB::raw('SUM(a.qty) as total_chips'),'a.created_at', 'b.firstname as created_by')
+            ->leftJoin('user_profile as b', 'a.created_by', '=', 'b.id')
+            ->where('a.business_id', '=', $this->userInfo->business_id)
+            ->where('a.visibility', '=', '1')
+            ->groupBy('a.created_at')
+            ->get();
+    }
+
+    public function getAllOutgoing()
+    {
+        return $this->chipVOL
+            ->from('chip_vault_outgoing_log as a')
+            ->select('a.id', DB::raw('SUM(a.amount) as total_amount'), DB::raw('SUM(a.qty) as total_chips'),'a.created_at', 'b.firstname as created_by')
+            ->leftJoin('user_profile as b', 'a.created_by', '=', 'b.id')
+            ->where('a.business_id', '=', $this->userInfo->business_id)
+            ->where('a.visibility', '=', '1')
+            ->groupBy('a.created_at')
+            ->get();
+    }
+
     public function getAllByBusiness()
     {
         return $this->chipVault

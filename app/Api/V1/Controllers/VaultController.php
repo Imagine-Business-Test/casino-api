@@ -29,6 +29,20 @@ class VaultController extends BaseController
         $this->chipVaultRepo = $chipVaultRepo;
     }
 
+    public function findAllIncoming()
+    {
+        $result = $this->chipVaultRepo->getAllIncoming();
+        $response_message = $this->customHttpResponse(200, 'Success.', $result);
+        return response()->json($response_message);
+    }
+
+    public function findAllOutgoing()
+    {
+        $result = $this->chipVaultRepo->getAllOutgoing();
+        $response_message = $this->customHttpResponse(200, 'Success.', $result);
+        return response()->json($response_message);
+    }
+
     public function findAllByBusiness()
     {
         $result = $this->chipVaultRepo->getAllByBusiness();
