@@ -154,8 +154,6 @@ class VaultController extends BaseController
 
             ];
 
-            // Log::info("Total Value =  " . json_encode($totalValue));
-            // Log::info(json_encode($detailed));
 
             $q1 = $this->chipVaultRepo->receive($vaultInfo);
             $resonse = json_decode($q1->getContent());

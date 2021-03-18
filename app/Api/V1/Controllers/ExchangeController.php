@@ -14,8 +14,6 @@ use App\Contracts\Repository\IUserRepository;
 use App\Helper\UserScope;
 use App\Plugins\PUGXShortId\Shortid;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 
@@ -130,14 +128,11 @@ class ExchangeController extends BaseController
                 $vault->total_value = $amount;
                 $detailed[] = $vault;
             }
-            
+
 
             $details['total_qty'] = $totalQty;
             $details['total_value'] = $totalValue;
             $details['vaults'] = $detailed;
-
-            Log::info("Total Value =  ");
-            Log::info(json_encode($details));
 
             $q1 = $this->exchangeVaultRepo->receive($details);
             $resonse = json_decode($q1->getContent());

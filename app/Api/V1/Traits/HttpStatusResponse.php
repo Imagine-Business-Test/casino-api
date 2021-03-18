@@ -4,7 +4,7 @@ namespace App\Api\V1\Traits;
 
 /**
  * #author Ezugudor
- * This trait houses request responses with the correct standard HTTP status c
+ * This trait houses request responses with the correct standard HTTP status
  * codes with nice descriptions and infos.
  */
 trait HttpStatusResponse
@@ -60,7 +60,7 @@ trait HttpStatusResponse
                     'message' => $message,
                     'data' => $data,
                 );
-            }else{
+            } else {
                 $response = array(
                     'status_code' => $statusCode,
                     'status_desc' => "Custom status",
