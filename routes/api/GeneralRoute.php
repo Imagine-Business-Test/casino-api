@@ -52,8 +52,13 @@ $api->version(
 
         $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
             $api->get('pits', [
-                'as' => 'authorization.login',
+                'as' => 'pits.findall',
                 'uses' => 'PitsController@getAll',
+            ]);
+
+            $api->get('pits/{id}', [
+                'as' => 'pits.find',
+                'uses' => 'PitsController@findOne',
             ]);
         });
 
@@ -69,12 +74,12 @@ $api->version(
         ]);
 
         $api->get('business', [
-            'as' => 'business.register',
+            'as' => 'business.findall',
             'uses' => 'BusinessController@findAll',
         ]);
 
         $api->get('business/{id}', [
-            'as' => 'business.register',
+            'as' => 'business.find',
             'uses' => 'BusinessController@find',
         ]);
 
@@ -83,12 +88,12 @@ $api->version(
          * Auth route
          */
         $api->post('login', [
-            'as' => 'authorization.login',
+            'as' => 'adminauthorization.login',
             'uses' => 'UserController@login',
         ]);
 
 
-         /**
+        /**
          * Chip Holder Routes
          */
 
@@ -98,7 +103,8 @@ $api->version(
         ]);
 
 
-         /**
+
+        /**
          * Vault Routes
          */
         $api->get('vault/incoming', [
@@ -126,7 +132,7 @@ $api->version(
             'uses' => 'VaultController@disburse',
         ]);
 
-         /**
+        /**
          * Exchange Routes
          */
 
@@ -139,7 +145,5 @@ $api->version(
             'as' => 'exchange.dispatch',
             'uses' => 'ExchangeController@disburse',
         ]);
-
-    
     }
 );

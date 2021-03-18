@@ -23,12 +23,17 @@ class PitsController extends BaseController
 
     public function __construct(Request $request, IPitRepository $pitRepo, UserAuth $user)
     {
-    
+
         $this->pitRepo = $pitRepo;
     }
 
     public function getAll()
     {
         return $this->pitRepo->findAll();
+    }
+
+    public function findOne($id)
+    {
+        return $this->pitRepo->find($id);
     }
 }
