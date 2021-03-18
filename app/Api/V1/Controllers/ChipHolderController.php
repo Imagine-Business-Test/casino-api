@@ -27,4 +27,12 @@ class ChipHolderController extends BaseController
         $response_message = $this->customHttpResponse(200, 'Success.', $result);
         return response()->json($response_message);
     }
+
+    public function findOne($id)
+    {
+        $result = $this->chipHolderRepo->find($id);
+        $result = ChipHolderMapper::pruneChipHolder($result);
+        $response_message = $this->customHttpResponse(200, 'Success.', $result);
+        return response()->json($response_message);
+    }
 }

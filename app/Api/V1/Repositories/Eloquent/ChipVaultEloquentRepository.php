@@ -58,7 +58,7 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
     {
         return $this->chipVIL
             ->from('chip_vault_incoming_log as a')
-            ->select('a.id', DB::raw('SUM(a.total_chip_value) as total_amount'), DB::raw('SUM(a.qty) as total_chips'),'a.created_at', 'b.firstname as created_by')
+            ->select('a.id', DB::raw('SUM(a.total_chip_value) as total_amount'), DB::raw('SUM(a.qty) as total_chips'), 'a.created_at', 'b.firstname as created_by')
             ->leftJoin('user_profile as b', 'a.created_by', '=', 'b.id')
             ->where('a.business_id', '=', $this->userInfo->business_id)
             ->where('a.visibility', '=', '1')
@@ -70,7 +70,7 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
     {
         return $this->chipVOL
             ->from('chip_vault_outgoing_log as a')
-            ->select('a.id', DB::raw('SUM(a.amount) as total_amount'), DB::raw('SUM(a.qty) as total_chips'),'a.created_at', 'b.firstname as created_by')
+            ->select('a.id', DB::raw('SUM(a.amount) as total_amount'), DB::raw('SUM(a.qty) as total_chips'), 'a.created_at', 'b.firstname as created_by')
             ->leftJoin('user_profile as b', 'a.created_by', '=', 'b.id')
             ->where('a.business_id', '=', $this->userInfo->business_id)
             ->where('a.visibility', '=', '1')
@@ -154,11 +154,7 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
                 }
             }
 
-            DB::commit(); //release lockForUpdate
-
-            // Log::info("operated vault");
-            // Log::info(json_encode($operatedVaults));
-            // Log::info(json_encode($remaining));
+            DB::commit(); //commits will implicitly release lockForUpdate , so no need to do manually.
 
             if ($remaining > 0) {
                 $response_message = $this->customHttpResponse(
@@ -181,9 +177,6 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
         } catch (\Throwable $th) {
 
             DB::rollBack();
-
-            //Log neccessary status detail(s) for debugging purpose.
-            Log::info("One of the DB statements failed. Error: " . $th);
 
             //send nicer data to the user
             $response_message = $this->customHttpResponse(500, 'Transaction Error.');
@@ -250,7 +243,7 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
             //todo: get vault value since thats what links different vaults together
             //update exchange
 
-            $dbDataCV = Mapper::creditExchangeVault($details);
+            $dbDataCV = Mapper::creditExchangeVault($details); //same as DTOs
             DB::statement($dbDataCV);
 
             //create exhange EIL
@@ -258,10 +251,6 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
             $details['holder_type'] = $holderType;
             $dbDataEIL = Mapper::toExchangeVaultIncomingLog($details);
             $biz = $this->exchVIL->insert($dbDataEIL);
-
-            // Log::info("info");
-            // Log::info($dbDataCV);
-            // Log::info($dbDataEIL);
 
             DB::commit();
             //send nicer data to the user
@@ -271,9 +260,6 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
         } catch (\Throwable $th) {
 
             DB::rollBack();
-
-            //Log neccessary status detail(s) for debugging purpose.
-            Log::info("One of the DB statements failed. Error: " . $th);
 
             //send nicer data to the user
             $response_message = $this->customHttpResponse(500, 'Transaction Error.');
@@ -290,16 +276,9 @@ class ChipVaultEloquentRepository extends  EloquentRepository implements IChipVa
             $details['business_id'] = $this->userInfo->business_id;
             $details['user_id'] = $this->userInfo->id;
 
-
-
-
             //update vault
             $dbDataCV = Mapper::updateChipVault($details);
-            // Log::info("vault multi = ");
-            // Log::info(json_encode($dbDataCV));
-
             $auth2 = DB::statement($dbDataCV);
-
 
             //create VIL
             $dbDataVIL = Mapper::toChipVaultIncomingLog($details);

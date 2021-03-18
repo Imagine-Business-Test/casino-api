@@ -144,10 +144,6 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
         } catch (\Throwable $th) {
 
             DB::rollBack();
-
-            //Log neccessary status detail(s) for debugging purpose.
-            Log::info("One of the DB statements failed. Error: " . $th);
-
             //send nicer data to the user
             $response_message = $this->customHttpResponse(500, 'Transaction Error.');
             return response()->json($response_message);
@@ -171,7 +167,7 @@ class ExchangeVaultEloquentRepository extends  EloquentRepository implements IEx
                     })
                     ->lockForUpdate()
                     ->first();
-                
+
 
                 if (is_null($result)) {
 
