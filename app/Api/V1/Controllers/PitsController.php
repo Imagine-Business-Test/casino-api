@@ -29,11 +29,15 @@ class PitsController extends BaseController
 
     public function getAll()
     {
-        return $this->pitRepo->findAll();
+        $result = $this->pitRepo->findAll();
+        $response_message = $this->customHttpResponse(200, 'Success.', $result);
+        return response()->json($response_message);
     }
 
     public function findOne($id)
     {
-        return $this->pitRepo->find($id);
+        $result = $this->pitRepo->find($id);
+        $response_message = $this->customHttpResponse(200, 'Success.', $result);
+        return response()->json($response_message);
     }
 }

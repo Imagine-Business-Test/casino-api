@@ -98,9 +98,15 @@ $api->version(
          */
 
         $api->get('chip_holder', [
-            'as' => 'vault.chip_holder',
+            'as' => 'vault.chip_holder_all',
             'uses' => 'ChipHolderController@findAll',
         ]);
+
+        $api->get('chip_holder/{id}', [
+            'as' => 'vault.chip_holder',
+            'uses' => 'ChipHolderController@findOne',
+        ]);
+
 
 
 
