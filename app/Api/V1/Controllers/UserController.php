@@ -74,12 +74,9 @@ class UserController extends BaseController
         $passwordPlain = $request->get('password');
 
         $user = $this->userRepo->showByUsername($username);
-        Log::info("aa3" . json_encode($user));
         if (count($user) > 0) {
             $user = $user->first();
 
-            Log::info("aa");
-            Log::info(json_encode($user));
             if (Hash::check($passwordPlain, $user->password)) {
                 $userID = $user->id;
                 $username = $user->username;
@@ -88,10 +85,7 @@ class UserController extends BaseController
 
                 try {
                     $scope = UserScope::get($user->role);
-
                     $TokenResponse = $this->getTokenByCurl($userID, $username, $passwordPlain, $scope);
-
-
 
                     // $accessToken = $user->createToken("Personal Access Client")->accessToken;
                     $result = [
@@ -173,7 +167,7 @@ class UserController extends BaseController
             $detail = $request->input();
             $user = $request->user('api');
 
-            $detail['business_id'] = $user->business_id; //where 8 = player
+            $detail['business_id'] = $user->business_id;
             $password = Shortid::generate(10, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@&");
 
             Log::info("logging passport {$password}");
@@ -206,9 +200,11 @@ class UserController extends BaseController
 
             if ($resonse->status_code === 200) {
                 $thisUser = $resonse->data->user;
+
+                //Send mail here
+
                 // $mailRes = $mailer->init($detail);
                 // $mailRes = (object) $mailRes;
-
                 // // Log::info("logging response after mail");
                 // // Log::info(json_encode($mailRes));
                 // //send nicer data to the user
@@ -220,6 +216,8 @@ class UserController extends BaseController
 
 
                 try {
+                    //Send SMS here
+
                     // $sms_gateway = new  SMSGatewayController();
                     // $sms_gateway->triggerSMS( $user->phone, "SMS Verification Code: ". $sms_code  );
 

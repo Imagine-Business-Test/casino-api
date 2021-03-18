@@ -23,8 +23,6 @@ class ChipHolderController extends BaseController
     public function findAll()
     {
         $result = $this->chipHolderRepo->findAll();
-        Log::info("aaaadd");
-        Log::info($result);
         $result = ChipHolderMapper::pruneChipHolder($result);
         $response_message = $this->customHttpResponse(200, 'Success.', $result);
         return response()->json($response_message);

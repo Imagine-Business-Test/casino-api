@@ -26,14 +26,11 @@ class RepositoryServiceProvider extends ServiceProvider
     public function register()
     {
         //Repositories
-        // $this->app->bind(IUserRepository::class, UserEloquentRepository::class);
         $this->app->bind(IPitRepository::class, PitEloquentRepository::class);
         $this->app->bind(IUserRepository::class, UserEloquentRepository::class);
         $this->app->bind(IBusinessRepository::class, BusinessEloquentRepository::class);
         $this->app->bind(IChipVaultRepository::class, ChipVaultEloquentRepository::class);
         $this->app->bind(IChipHolderRepository::class, ChipHolderEloquentRepository::class);
         $this->app->bind(IExchangeVaultRepository::class, ExchangeVaultEloquentRepository::class);
-        // $this->app->bind('App\Api\V1\Repositories\Contract\IPitRepository', 'App\Api\V1\Repositories\PitEloquentRepository');
-
     }
 }

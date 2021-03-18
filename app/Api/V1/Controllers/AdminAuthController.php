@@ -6,23 +6,14 @@ namespace App\Api\V1\Controllers;
 use App\Api\V1\Models\AdminAuth;
 use App\Api\V1\Models\AdminProfile;
 use App\Api\V1\Controllers\BaseController;
-use Carbon\Carbon;
 use Ixudra\Curl\Facades\Curl;
 use App\Api\V1\Models\oAuthClient;
-// use App\Libraries\Encryption;
-// use GuzzleHttp\Client;
 use Illuminate\Http\Request;
-// use App\Transformers\AuthorizationTransformer;
 // use App\Jobs\SendRegisterEmail;
-// use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-// use Dingo\Api\Routing\Helpers;
-use App\Http\Controllers\Controller;
-use Dingo\Blueprint\Annotation\Transaction;
 use Exception;
-use Illuminate\Auth\Access\Response;
 
 // use Dingo\Api\Exception\ValidationHttpException;
 use Illuminate\Support\Facades\Validator;
@@ -54,17 +45,19 @@ class AdminAuthController extends BaseController
 
         $username = $request->get('username');
         $password = $request->get('password');
-
+        /**
+         *  TODO: Move this persistence access to THIS entity's repository 
+         *        i.e AdminAuthRepository as it is in other entities controllers.
+         */
         $user = AdminAuth::from('admin_auth as a')
             ->select(['a.id', 'a.username', 'a.password', 'b.*'])
             ->leftJoin('admin_profile as b', 'a.id', '=', 'b.user_id')
             ->where('a.username', '=', $username)
             ->limit(1)
             ->get();
-        Log::info("user returned data" . $user);
+
         if (count($user) > 0) {
             $user = $user->first();
-            // Log::info("check password " . Hash::check($password, $user->password));
             if (Hash::check($password, $user->password)) {
                 $userID = $user->id;
                 $username = $user->username;
@@ -73,26 +66,17 @@ class AdminAuthController extends BaseController
 
                 try {
                     $TokenResponse = $this->getTokenByCurl($userID, $username, $password);
-                    //Log neccessary status detail(s) for debugging purpose.
-                    Log::info("user does not exist");
-                    Log::info($TokenResponse);
 
                     //send nicer data to the user
                     $response_message = $this->customHttpResponse(200, 'Login successful. Token generated.', $TokenResponse);
                     return response()->json($response_message);
                 } catch (Exception $th) {
-                    //Log neccessary status detail(s) for debugging purpose.
-                    Log::info("user oauth authentication error");
-                    Log::info($th);
 
                     //send nicer data to the user
                     $response_message = $this->customHttpResponse(401, 'Client authentication failed.');
                     return response()->json($response_message);
                 }
             } else {
-
-                //Log neccessary status detail(s) for debugging purpose.
-                Log::info("user does not exist" . $user);
 
                 //send nicer error to the user
                 $response_message = $this->customHttpResponse(401, 'User does not Exist.');
@@ -103,6 +87,10 @@ class AdminAuthController extends BaseController
 
     public function index()
     {
+        /**
+         *  TODO: Move this persistence access to THIS entity's repository 
+         *        i.e AdminAuthRepository as it is in other entities controllers.
+         */
         $store = AdminAuth::from('admin_auth as a')
             ->select(['a.username', 'b.*'])
             ->leftJoin('admin_profile as b', 'a.id', '=', 'b.user_id')
@@ -114,6 +102,10 @@ class AdminAuthController extends BaseController
 
     public function show(Request $request, $userId)
     {
+        /**
+         *  TODO: Move this persistence access to THIS entity's repository 
+         *        i.e AdminAuthRepository as it is in other entities controllers.
+         */
         $store = AdminAuth::from('admin_auth as a')
             ->select(['a.username', 'b.*'])
             ->leftJoin('admin_profile as b', 'a.id', '=', 'b.user_id')
@@ -137,10 +129,6 @@ class AdminAuthController extends BaseController
 
 
         if ($validator->fails()) {
-
-            //Log neccessary status detail(s) for debugging purpose.
-            Log::info("logging error" . $validator);
-
             //send nicer error to the user
             $response_message = $this->customHttpResponse(401, 'Incorrect Details. All fields are required.');
             return response()->json($response_message);
@@ -155,6 +143,10 @@ class AdminAuthController extends BaseController
 
         DB::beginTransaction();
         try {
+            /**
+             *  TODO: Move this persistence access to THIS entity's repository 
+             *        i.e AdminAuthRepository as it is in other entities controllers.
+             */
             $auth = AdminAuth::create([
                 'username' => $username,
                 'password' => Hash::make($password),
@@ -168,7 +160,6 @@ class AdminAuthController extends BaseController
                 'phone' => $phone,
                 'email' => $email
             ]);
-            Log::info("phone: " . $phone);
             $oauth_client = new oAuthClient();
             $oauth_client->user_id = $auth->id;
             // $oauth_client->id = $phone;
@@ -179,10 +170,6 @@ class AdminAuthController extends BaseController
             $oauth_client->redirect = '';
             $oauth_client->revoked = 0;
             $oauth_client->save();
-
-            $message =  "User client for OAuth successfully created";
-            Log::info(Carbon::now()->toDateTimeString() . " => " .  $message);
-
 
             /**
              *   If the floww can reach here, then everything is fine
@@ -195,10 +182,6 @@ class AdminAuthController extends BaseController
         } catch (\Throwable $th) {
 
             DB::rollBack();
-
-            //Log neccessary status detail(s) for debugging purpose.
-            Log::info("One of the DB statements failed. Error: " . $th);
-
             //send nicer data to the user
             $response_message = $this->customHttpResponse(500, 'Transaction Error.');
             return response()->json($response_message);
@@ -207,14 +190,10 @@ class AdminAuthController extends BaseController
 
     public function getTokenByCurl($userID, $username, $password)
     {
-        Log::info('Fass' . json_encode([$userID, $username, $password]));
-
         $BaseEndPoint =  url('/'); // Base Url , basically.
-        Log::info('url' . url('/'));
         $CurrentEndpoint = "/oauth/token";
 
         $FullEndPoint =  $BaseEndPoint . $CurrentEndpoint;
-        Log::info('urlfull' . url($FullEndPoint));
         $TokenResponse  = Curl::to($FullEndPoint)
             ->withData([
                 "client_id" =>   1,
@@ -227,9 +206,6 @@ class AdminAuthController extends BaseController
             ->enableDebug('/xDuraLog.txt')
             ->post();
 
-        Log::info('token: ' . json_encode($TokenResponse));
-
-        // if (property_exists($TokenResponse, "access_token")) {
         if ($TokenResponse) {
             return ['response' =>  $TokenResponse];
         } else {

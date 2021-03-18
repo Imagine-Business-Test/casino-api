@@ -74,9 +74,6 @@ class BusinessController extends BaseController
             //generate the on-the-fly admin creation details
             $detail['role'] = 6; //where 6 = admin
             $password = Shortid::generate(10, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@&");
-
-            Log::info("auto-gen password => " . $password);
-
             $detail['username'] = $request->get('email');
             $detail['password'] = Hash::make($password);
             $detail['plain_password'] = $password;
@@ -87,7 +84,6 @@ class BusinessController extends BaseController
             $check = $this->userRepo->emailExist($detail);
 
             if (!is_null($check) && !empty($check)) {
-
                 $response_message = $this->customHttpResponse(405, 'User with this email already exist.');
                 return response()->json($response_message);
             }
@@ -96,9 +92,7 @@ class BusinessController extends BaseController
             //check unique business name exist
             if ($request->has("business_slug")) {
                 $checkBusiness = $this->businessRepo->slugExist($detail);
-                Log::info("checking " . json_encode($checkBusiness));
                 if (!is_null($checkBusiness) && !empty($checkBusiness)) {
-                    Log::info("checking 2 " . json_encode($checkBusiness));
                     $response_message = $this->customHttpResponse(405, 'Business with this name already exist.');
                     return response()->json($response_message);
                 }
@@ -110,11 +104,12 @@ class BusinessController extends BaseController
             $resonse = json_decode($q1->getContent());
 
             if ($resonse->status_code === 200) {
+
+                //Send mail here
+
                 // $mailRes = $mailer->init($detail);
                 // $mailRes = (object) $mailRes;
 
-                // // Log::info("logging response after mail");
-                // // Log::info(json_encode($mailRes));
                 // //send nicer data to the user
                 // if ($mailRes->status == 200) {
                 //     $response_message = $this->customHttpResponse(200, 'Entity added successfully with Email.');
@@ -124,6 +119,8 @@ class BusinessController extends BaseController
 
 
                 try {
+                    //Send SMS here
+
                     // $sms_gateway = new  SMSGatewayController();
                     // $sms_gateway->triggerSMS( $user->phone, "SMS Verification Code: ". $sms_code  );
 
@@ -135,20 +132,11 @@ class BusinessController extends BaseController
                 $response_message = $this->customHttpResponse(200, "Entity added successfully Although email was sent as it's disabled.");
                 return response()->json($response_message);
             } else {
-                //Log neccessary status detail(s) for debugging purpose.
-                Log::info("aaOne of the DB statements failed. Error: " . $resonse->message);
-
                 //send nicer data to the user
                 $response_message = $this->customHttpResponse(500, 'Transaction Error.');
                 return response()->json($response_message);
             }
         } catch (\Throwable $th) {
-
-
-
-            //Log neccessary status detail(s) for debugging purpose.
-            Log::info("One of the DB statements failed. Error: " . $th);
-
             //send nicer data to the user
             $response_message = $this->customHttpResponse(500, 'Transaction Error.');
             return response()->json($response_message);
