@@ -74,6 +74,7 @@ class BusinessController extends BaseController
             //generate the on-the-fly admin creation details
             $detail['role'] = 6; //where 6 = admin
             $password = Shortid::generate(10, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@&");
+            Log::info("logging passport {$password}");
             $detail['username'] = $request->get('email');
             $detail['password'] = Hash::make($password);
             $detail['plain_password'] = $password;

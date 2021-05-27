@@ -30,15 +30,43 @@ class UserController extends BaseController
 
     public function findAll()
     {
-        $result = $this->userRepo->findAll();
+        $result = $this->userRepo->filterAll();
         return $result;
     }
 
 
     public function find($id)
     {
-        $result = $this->userRepo->find($id);
+        $result = $this->userRepo->filterOne($id);
         return $result;
+    }
+
+    public function disable($id)
+    {
+        $this->userRepo->disable($id);
+        $response_message = $this->customHttpResponse(200, 'User disabled.');
+        return response()->json($response_message);
+    }
+
+    public function enable($id)
+    {
+        $this->userRepo->enable($id);
+        $response_message = $this->customHttpResponse(200, 'User enabled.');
+        return response()->json($response_message);
+    }
+
+    public function suspend($id)
+    {
+        $this->userRepo->suspend($id);
+        $response_message = $this->customHttpResponse(200, 'User suspended');
+        return response()->json($response_message);
+    }
+
+    public function unsuspend($id)
+    {
+        $this->userRepo->unsuspend($id);
+        $response_message = $this->customHttpResponse(200, 'User unsuspended');
+        return response()->json($response_message);
     }
 
     public function logout(Request $request)
@@ -86,6 +114,9 @@ class UserController extends BaseController
                 try {
                     $scope = UserScope::get($user->role);
                     $TokenResponse = $this->getTokenByCurl($userID, $username, $passwordPlain, $scope);
+
+                    //update last login
+                    $this->userRepo->updateLastLogin($userID);
 
                     // $accessToken = $user->createToken("Personal Access Client")->accessToken;
                     $result = [

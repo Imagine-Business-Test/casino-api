@@ -8,6 +8,9 @@ use App\Api\V1\Models\UserProfile;
 use App\Contracts\Repository\IUserRepository;
 use App\Api\V1\Repositories\EloquentRepository;
 use App\Utils\Mapper;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -24,6 +27,33 @@ class UserEloquentRepository extends  EloquentRepository implements IUserReposit
     public function model()
     {
         return UserProfile::class;
+    }
+
+    public function filterOne(string $id): Model
+    {
+        $stmt =  $this->model->from('user_auth as a')
+            ->select('a.id', 'a.username', 'b.surname', 'b.firstname', 'b.phone', 'b.email', 'r.role as role_name', 'r.stub as role_slug', 'b.avatar', 'a.last_login')
+            ->leftJoin('user_profile as b', 'a.id', 'b.id')
+            ->leftJoin('user_role as r', 'a.role', 'r.id')
+            ->where('a.id', '=', $id)
+            ->whereNull('a.disabled_at')
+            ->whereNull('a.suspended_at')
+            ->whereNull('a.deleted_at')
+            ->first();
+        return $stmt;
+    }
+
+    public function filterAll(): Collection
+    {
+        $stmt =  $this->model->from('user_auth as a')
+            ->select('a.id', 'a.username', 'b.surname', 'b.firstname', 'b.phone', 'b.email', 'r.role as role_name', 'r.stub as role_slug', 'b.avatar', 'a.last_login')
+            ->leftJoin('user_profile as b', 'a.id', 'b.id')
+            ->leftJoin('user_role as r', 'a.role', 'r.id')
+            ->whereNull('a.disabled_at')
+            ->whereNull('a.suspended_at')
+            ->whereNull('a.deleted_at')
+            ->get();
+        return $stmt;
     }
 
     public function showByUsername(string $username)
@@ -128,5 +158,50 @@ class UserEloquentRepository extends  EloquentRepository implements IUserReposit
         ));
 
         return is_null($res) || empty($res) ? $res : $res[0];
+    }
+
+    public function updateLastLogin($userId)
+    {
+        $updateInfo = UserAuth::where('id', $userId)
+            ->update([
+                'last_login' => Carbon::now()
+            ]);
+    }
+
+    public function disable($userId)
+    {
+        $updateInfo = UserAuth::where('id', $userId)
+            ->update([
+                'disabled_at' => Carbon::now()
+            ]);
+    }
+
+    public function enable($userId)
+    {
+        $updateInfo = UserAuth::where('id', $userId)
+            ->update([
+                'disabled_at' => null
+            ]);
+    }
+
+    public function suspend($userId)
+    {
+        $updateInfo = UserAuth::where('id', $userId)
+            ->update([
+                'suspended_at' => Carbon::now()
+            ]);
+    }
+
+    public function unsuspend($userId)
+    {
+        $updateInfo = UserAuth::where('id', $userId)
+            ->update([
+                'suspended_at' => null
+            ]);
+    }
+
+    public function updatePassportSecret($userId, $secret)
+    {
+        DB::statement("UPDATE oauth_clients SET secret = '{$secret}' where user_id = {$userId}");
     }
 }

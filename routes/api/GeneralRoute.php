@@ -43,6 +43,26 @@ $api->version(
                 'as' => 'authorization.show',
                 'uses' => 'UserController@find',
             ]);
+
+            $api->put('user/enable/{id}', [
+                'as' => 'user.enable',
+                'uses' => 'UserController@enable',
+            ]);
+
+            $api->put('user/disable/{id}', [
+                'as' => 'user.disable',
+                'uses' => 'UserController@disable',
+            ]);
+
+            $api->put('user/suspend/{id}', [
+                'as' => 'user.suspend',
+                'uses' => 'UserController@suspend',
+            ]);
+
+            $api->put('user/unsuspend/{id}', [
+                'as' => 'user.unsuspend',
+                'uses' => 'UserController@unsuspend',
+            ]);
         });
 
 
@@ -60,7 +80,67 @@ $api->version(
                 'as' => 'pits.find',
                 'uses' => 'PitsController@findOne',
             ]);
+
+            $api->get('game_types', [
+                'as' => 'pits.types',
+                'uses' => 'PitsController@getAllPitTypes',
+            ]);
+
+            $api->post('pit', [
+                'as' => 'pits.new',
+                'uses' => 'PitsController@create',
+            ]);
         });
+        /**
+         * Expenses Routes
+         */
+
+        $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
+
+
+            $api->post('expenses', [
+                'as' => 'expenses.new',
+                'uses' => 'ExpensesController@create',
+            ]);
+
+            $api->get('expenses', [
+                'as' => 'expenses.getByMonth',
+                'uses' => 'ExpensesController@findByMonth',
+            ]);
+        });
+        /**
+         * Report Routes
+         */
+
+        $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
+            $api->get('report', [
+                'as' => 'Report.findall',
+                'uses' => 'ReportController@getReport',
+            ]);
+            $api->get('report/generate', [
+                'as' => 'Report.generate',
+                'uses' => 'ReportController@generateReport',
+            ]);
+        });
+
+
+        /**
+         * Chips Routes
+         */
+
+        $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
+            $api->get('chips', [
+                'as' => 'chips.findall',
+                'uses' => 'ChipsController@getAll',
+            ]);
+
+            $api->get('chips/{id}', [
+                'as' => 'chips.find',
+                'uses' => 'ChipsController@findOne',
+            ]);
+        });
+
+
 
 
 
