@@ -111,7 +111,7 @@ class PitEventLogRepository extends  EloquentRepository implements IPitEventLog
             // ->leftJoin('user_profile up', 'a.player_id', '=', 'up.id')
             ->where('a.business_id', '=', 1)
             ->where('a.player_id', '=', $userID)
-            ->groupBy('pet.id')
+            ->groupBy('a.id')
             ->get();
     }
 }
