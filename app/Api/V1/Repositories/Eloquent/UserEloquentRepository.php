@@ -32,12 +32,25 @@ class UserEloquentRepository extends  EloquentRepository implements IUserReposit
     public function filterOne(string $id): Model
     {
         $stmt =  $this->model->from('user_auth as a')
-            ->select('a.id', 'a.username', 'b.surname', 'b.firstname', 'b.phone', 'b.email', 'r.role as role_name', 'r.stub as role_slug', 'b.avatar', 'a.last_login')
+            ->select(
+                'a.id',
+                'a.username',
+                'b.surname',
+                'b.firstname',
+                DB::raw("CASE WHEN a.suspended_at IS NOT NULL THEN 1 ELSE '0' END as is_suspended"),
+                DB::raw("CASE WHEN a.disabled_at IS NOT NULL THEN 1 ELSE '0' END as is_disabled"),
+                'b.phone',
+                'b.email',
+                'r.role as role_name',
+                'r.stub as role_slug',
+                'b.avatar',
+                'a.last_login'
+            )
             ->leftJoin('user_profile as b', 'a.id', 'b.id')
             ->leftJoin('user_role as r', 'a.role', 'r.id')
             ->where('a.id', '=', $id)
-            ->whereNull('a.disabled_at')
-            ->whereNull('a.suspended_at')
+            // ->whereNull('a.disabled_at')
+            // ->whereNull('a.suspended_at')
             ->whereNull('a.deleted_at')
             ->first();
         return $stmt;
@@ -46,12 +59,27 @@ class UserEloquentRepository extends  EloquentRepository implements IUserReposit
     public function filterAll(): Collection
     {
         $stmt =  $this->model->from('user_auth as a')
-            ->select('a.id', 'a.username', 'b.surname', 'b.firstname', 'b.phone', 'b.email', 'r.role as role_name', 'r.stub as role_slug', 'b.avatar', 'a.last_login')
+            ->select(
+                'a.id',
+                'a.username',
+                'b.surname',
+                'b.firstname',
+                DB::raw("CASE WHEN a.suspended_at IS NOT NULL THEN 1 ELSE '0' END as is_suspended"),
+                DB::raw("CASE WHEN a.disabled_at IS NOT NULL THEN 1 ELSE '0' END as is_disabled"),
+                'b.phone',
+                'b.email',
+                'r.role as role_name',
+                'r.stub as role_slug',
+                'b.avatar',
+                'a.last_login'
+            )
             ->leftJoin('user_profile as b', 'a.id', 'b.id')
             ->leftJoin('user_role as r', 'a.role', 'r.id')
-            ->whereNull('a.disabled_at')
-            ->whereNull('a.suspended_at')
+            // ->whereNull('a.disabled_at')
+            // ->whereNull('a.suspended_at')
             ->whereNull('a.deleted_at')
+            // ->orderBy('is_disabled', 'desc')
+            // ->orderBy('is_suspended', 'desc')
             ->get();
         return $stmt;
     }

@@ -5,6 +5,7 @@ namespace App\Api\V1\Controllers;
 
 
 use App\Api\V1\Models\User;
+use App\Contracts\Repository\IPitEventLog;
 use App\Http\Controllers\Api\V1\SMSGatewayController;
 use Ixudra\Curl\Facades\Curl;
 use App\Contracts\Repository\IUserRepository;
@@ -21,10 +22,12 @@ class UserController extends BaseController
 {
 
     private $userRepo;
+    private $pitEventLogRepo;
 
-    public function __construct(IUserRepository $userRepo)
+    public function __construct(IUserRepository $userRepo, IPitEventLog $pitEventLogRepo)
     {
         $this->userRepo = $userRepo;
+        $this->pitEventLogRepo = $pitEventLogRepo;
     }
 
 
@@ -37,8 +40,24 @@ class UserController extends BaseController
 
     public function find($id)
     {
-        $result = $this->userRepo->filterOne($id);
-        return $result;
+        try {
+            $result = $this->userRepo->filterOne($id);
+        } catch (\Throwable $th) {
+            $response_message = $this->customHttpResponse(500, 'Result is empty.');
+            return response()->json($response_message);
+        }
+
+
+
+        if ($result->role_slug === "player") {
+            //then attach players game activities.
+            $userGameHistory = $this->pitEventLogRepo->userGameHistory($id);
+            $result = ['user_info' => $result, 'game_history' => $userGameHistory];
+        } else {
+            $result = ['user_info' => $result];
+        }
+        $response_message = $this->customHttpResponse(200, 'User details retrieved', $result);
+        return response()->json($response_message);
     }
 
     public function disable($id)

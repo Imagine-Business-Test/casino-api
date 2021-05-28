@@ -85,4 +85,33 @@ class PitEventLogRepository extends  EloquentRepository implements IPitEventLog
             ->havingRaw("DATE(date) BETWEEN DATE('{$start}') AND $end")
             ->get();
     }
+
+    public function userGameHistory($userID)
+    {
+
+        return $this->pitEventLog
+            ->from('pit_event_log as a')
+            ->select(
+                'a.session_id as game_session_id',
+                'pet.event_name',
+                'pet.event_slug as status',
+                'pet.event_desc',
+                'pt.name as pit_name',
+                DB::raw('SUM(pss.amount) as total_stake'),
+                'a.amount as expected_roi',
+                'a.created_at'
+            )
+            ->leftJoin('pit_event_types as pet', 'a.event_type', '=', 'pet.id')
+            ->leftJoin('pit_types as pt', 'a.pit_game_type', '=', 'pt.id')
+            ->leftJoin('pit_session_stakes as pss', function ($join) {
+                $join->on('a.session_id', '=', 'pss.session_id');
+                $join->on('a.player_id', '=', 'pss.player_id');
+            })
+            // ->leftJoin('user_auth ua', 'a.player_id', '=', 'ua.id')
+            // ->leftJoin('user_profile up', 'a.player_id', '=', 'up.id')
+            ->where('a.business_id', '=', 1)
+            ->where('a.player_id', '=', $userID)
+            ->groupBy('pet.id')
+            ->get();
+    }
 }
