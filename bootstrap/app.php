@@ -63,6 +63,11 @@ $app->singleton(
 //     App\Http\Middleware\ExampleMiddleware::class
 // ]);
 
+$app->middleware([
+    // App\Http\Middleware\ExampleMiddleware::class
+    'cors' => App\Http\Middleware\CorsMiddleware::class,
+]);
+
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'scopes' => \Laravel\Passport\Http\Middleware\CheckScopes::class,

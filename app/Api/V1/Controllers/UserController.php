@@ -5,6 +5,7 @@ namespace App\Api\V1\Controllers;
 
 
 use App\Api\V1\Models\User;
+use App\Contracts\Repository\IPitEventLog;
 use App\Http\Controllers\Api\V1\SMSGatewayController;
 use Ixudra\Curl\Facades\Curl;
 use App\Contracts\Repository\IUserRepository;
@@ -21,24 +22,70 @@ class UserController extends BaseController
 {
 
     private $userRepo;
+    private $pitEventLogRepo;
 
-    public function __construct(IUserRepository $userRepo)
+    public function __construct(IUserRepository $userRepo, IPitEventLog $pitEventLogRepo)
     {
         $this->userRepo = $userRepo;
+        $this->pitEventLogRepo = $pitEventLogRepo;
     }
 
 
     public function findAll()
     {
-        $result = $this->userRepo->findAll();
+        $result = $this->userRepo->filterAll();
         return $result;
     }
 
 
     public function find($id)
     {
-        $result = $this->userRepo->find($id);
-        return $result;
+        try {
+            $result = $this->userRepo->filterOne($id);
+        } catch (\Throwable $th) {
+            $response_message = $this->customHttpResponse(500, 'Result is empty.');
+            return response()->json($response_message);
+        }
+
+
+
+        if ($result->role_slug === "player") {
+            //then attach players game activities.
+            $userGameHistory = $this->pitEventLogRepo->userGameHistory($id);
+            $result = ['user_info' => $result, 'game_history' => $userGameHistory];
+        } else {
+            $result = ['user_info' => $result];
+        }
+        $response_message = $this->customHttpResponse(200, 'User details retrieved', $result);
+        return response()->json($response_message);
+    }
+
+    public function disable($id)
+    {
+        $this->userRepo->disable($id);
+        $response_message = $this->customHttpResponse(200, 'User disabled.');
+        return response()->json($response_message);
+    }
+
+    public function enable($id)
+    {
+        $this->userRepo->enable($id);
+        $response_message = $this->customHttpResponse(200, 'User enabled.');
+        return response()->json($response_message);
+    }
+
+    public function suspend($id)
+    {
+        $this->userRepo->suspend($id);
+        $response_message = $this->customHttpResponse(200, 'User suspended');
+        return response()->json($response_message);
+    }
+
+    public function unsuspend($id)
+    {
+        $this->userRepo->unsuspend($id);
+        $response_message = $this->customHttpResponse(200, 'User unsuspended');
+        return response()->json($response_message);
     }
 
     public function logout(Request $request)
@@ -86,6 +133,9 @@ class UserController extends BaseController
                 try {
                     $scope = UserScope::get($user->role);
                     $TokenResponse = $this->getTokenByCurl($userID, $username, $passwordPlain, $scope);
+
+                    //update last login
+                    $this->userRepo->updateLastLogin($userID);
 
                     // $accessToken = $user->createToken("Personal Access Client")->accessToken;
                     $result = [

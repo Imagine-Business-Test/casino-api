@@ -43,6 +43,26 @@ $api->version(
                 'as' => 'authorization.show',
                 'uses' => 'UserController@find',
             ]);
+
+            $api->put('user/enable/{id}', [
+                'as' => 'user.enable',
+                'uses' => 'UserController@enable',
+            ]);
+
+            $api->put('user/disable/{id}', [
+                'as' => 'user.disable',
+                'uses' => 'UserController@disable',
+            ]);
+
+            $api->put('user/suspend/{id}', [
+                'as' => 'user.suspend',
+                'uses' => 'UserController@suspend',
+            ]);
+
+            $api->put('user/unsuspend/{id}', [
+                'as' => 'user.unsuspend',
+                'uses' => 'UserController@unsuspend',
+            ]);
         });
 
 
@@ -52,10 +72,75 @@ $api->version(
 
         $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
             $api->get('pits', [
-                'as' => 'authorization.login',
+                'as' => 'pits.findall',
                 'uses' => 'PitsController@getAll',
             ]);
+
+            $api->get('pits/{id}', [
+                'as' => 'pits.find',
+                'uses' => 'PitsController@findOne',
+            ]);
+
+            $api->get('game_types', [
+                'as' => 'pits.types',
+                'uses' => 'PitsController@getAllPitTypes',
+            ]);
+
+            $api->post('pit', [
+                'as' => 'pits.new',
+                'uses' => 'PitsController@create',
+            ]);
         });
+        /**
+         * Expenses Routes
+         */
+
+        $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
+
+
+            $api->post('expenses', [
+                'as' => 'expenses.new',
+                'uses' => 'ExpensesController@create',
+            ]);
+
+            $api->get('expenses', [
+                'as' => 'expenses.getByMonth',
+                'uses' => 'ExpensesController@findByMonth',
+            ]);
+        });
+        /**
+         * Report Routes
+         */
+
+        $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
+            $api->get('report', [
+                'as' => 'Report.findall',
+                'uses' => 'ReportController@getReport',
+            ]);
+            $api->get('report/generate', [
+                'as' => 'Report.generate',
+                'uses' => 'ReportController@generateReport',
+            ]);
+        });
+
+
+        /**
+         * Chips Routes
+         */
+
+        $api->group(['middleware' => ['auth:api', 'scopes:cashier']], function ($api) {
+            $api->get('chips', [
+                'as' => 'chips.findall',
+                'uses' => 'ChipsController@getAll',
+            ]);
+
+            $api->get('chips/{id}', [
+                'as' => 'chips.find',
+                'uses' => 'ChipsController@findOne',
+            ]);
+        });
+
+
 
 
 
@@ -69,12 +154,12 @@ $api->version(
         ]);
 
         $api->get('business', [
-            'as' => 'business.register',
+            'as' => 'business.findall',
             'uses' => 'BusinessController@findAll',
         ]);
 
         $api->get('business/{id}', [
-            'as' => 'business.register',
+            'as' => 'business.find',
             'uses' => 'BusinessController@find',
         ]);
 
@@ -83,22 +168,29 @@ $api->version(
          * Auth route
          */
         $api->post('login', [
-            'as' => 'authorization.login',
+            'as' => 'adminauthorization.login',
             'uses' => 'UserController@login',
         ]);
 
 
-         /**
+        /**
          * Chip Holder Routes
          */
 
         $api->get('chip_holder', [
-            'as' => 'vault.chip_holder',
+            'as' => 'vault.chip_holder_all',
             'uses' => 'ChipHolderController@findAll',
         ]);
 
+        $api->get('chip_holder/{id}', [
+            'as' => 'vault.chip_holder',
+            'uses' => 'ChipHolderController@findOne',
+        ]);
 
-         /**
+
+
+
+        /**
          * Vault Routes
          */
         $api->get('vault/incoming', [
@@ -126,7 +218,7 @@ $api->version(
             'uses' => 'VaultController@disburse',
         ]);
 
-         /**
+        /**
          * Exchange Routes
          */
 
@@ -139,7 +231,5 @@ $api->version(
             'as' => 'exchange.dispatch',
             'uses' => 'ExchangeController@disburse',
         ]);
-
-    
     }
 );
